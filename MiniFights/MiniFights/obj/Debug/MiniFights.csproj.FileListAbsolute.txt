@@ -1,0 +1,8 @@
+C:\Users\dreyk\source\repos\MiniFights\MiniFights\bin\Debug\MiniFights.exe.config
+C:\Users\dreyk\source\repos\MiniFights\MiniFights\bin\Debug\MiniFights.exe
+C:\Users\dreyk\source\repos\MiniFights\MiniFights\bin\Debug\MiniFights.pdb
+C:\Users\dreyk\source\repos\MiniFights\MiniFights\obj\Debug\MiniFights.csproj.AssemblyReference.cache
+C:\Users\dreyk\source\repos\MiniFights\MiniFights\obj\Debug\MiniFights.csproj.CoreCompileInputs.cache
+C:\Users\dreyk\source\repos\MiniFights\MiniFights\obj\Debug\MiniFights.exe
+C:\Users\dreyk\source\repos\MiniFights\MiniFights\obj\Debug\MiniFights.pdb
+C:\Users\dreyk\source\repos\MiniFights\MiniFights\obj\Debug\MiniFights.exe.config

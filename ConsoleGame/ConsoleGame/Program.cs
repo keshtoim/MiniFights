@@ -16,8 +16,6 @@ namespace ConsoleGame
             float armorPlayer = 0;
             float damagePlayer = 0;
 
-            // selectAction(ref healthPlayer, armorPlayer, damagePlayer, 0);
-
             classChoise(out healthPlayer, out armorPlayer, out damagePlayer);
             game(ref healthPlayer, ref armorPlayer, ref damagePlayer); 
 
@@ -129,51 +127,84 @@ namespace ConsoleGame
         {
             bool isPlayerAlive = true;
             Random rand = new Random();
+            int totalEnemies = 25;
+            int countOfPotions = 3;
 
-            while (isPlayerAlive)
+            for (int i = 0; i < totalEnemies && isPlayerAlive; i++)
             {
-                for (int i = 0; i < 25; i++)
-                {
-                    bool isEnemyAlive = true;
-                    Random random = new Random();
-                    
-                    float healthEnemy = rand.Next(50, 101);
-                    float armorEnemy = rand.Next(25, 51);
-                    float damageEnemy = rand.Next(5, 31);
-                    
-                    while (isEnemyAlive)
-                    {
-                        Console.Clear();
-                        Console.WriteLine($"Бой {i + 1}");
+                float healthEnemy = rand.Next(50, 101);
+                float armorEnemy = rand.Next(25, 51);
+                float damageEnemy = rand.Next(5, 31);
+                bool isEnemyAlive = true;
 
-                        printInfoAboutParticipantsOfTheBattle(healthPlayer, armorPlayer, damagePlayer,
+                Console.Clear();
+                Console.WriteLine($"Враг #{i + 1} из {totalEnemies} появился!");
+                Console.ReadKey();
+
+                while (isEnemyAlive && isPlayerAlive)
+                {
+                    Console.Clear();
+                    Console.WriteLine($"Бой с врагом #{i + 1}");
+                    printInfoAboutParticipantsOfTheBattle(healthPlayer, armorPlayer, damagePlayer,
+                        healthEnemy, armorEnemy, damageEnemy);
+                    Console.WriteLine($"\nЗелий осталось: {countOfPotions}");
+
+                    selectAction(
+                        ref healthPlayer,
+                        damagePlayer,
+                        armorPlayer,
+                        ref countOfPotions,
+                        damageEnemy, 
+                        out float damageToEnemy,
+                        out float damageToPlayer);
+
+                    healthEnemy -= damageToEnemy;
+                    healthPlayer -= damageToPlayer;
+
+                    if (healthPlayer <= 0)
+                    {
+                        isPlayerAlive = false;
+                        healthPlayer = 0; 
+                    }
+                    if (healthEnemy <= 0)
+                    {
+                        isEnemyAlive = false;
+                        healthEnemy = 0;
+                    }
+
+                    Console.Clear();
+                    Console.WriteLine($"Бой с врагом #{i + 1}");
+                    printInfoAboutParticipantsOfTheBattle(healthPlayer, armorPlayer, damagePlayer,
                         healthEnemy, armorEnemy, damageEnemy);
 
-                        healthEnemy -= damagePlayer * (1 - armorEnemy / 100);
-                        healthPlayer -= damageEnemy * (1 - armorPlayer / 100);
-                        
-                        if (healthPlayer <= 0)
-                        {
-                            isPlayerAlive = false;
-                            break;
-                        }
-                        if (healthEnemy <= 0)
-                        {
-                            isEnemyAlive = false;
-                            continue;
-                        }
-
-                        Console.ReadKey();
+                    if (!isEnemyAlive)
+                    {
+                        Console.WriteLine("\nВы победили врага!");
                     }
+                    else if (!isPlayerAlive)
+                    {
+                        Console.WriteLine("\nВы пали в бою...");
+                    }
+                    else
+                    {
+                        Console.WriteLine("\nБой продолжается...");
+                    }
+
+                    Console.ReadKey();
                 }
             }
-            if (isPlayerAlive == false)
+
+            Console.Clear();
+            if (isPlayerAlive)
             {
-                Console.Clear();
-                Console.WriteLine("Вы погибли");
+                Console.WriteLine("Поздравляем! Вы одолели всех врагов и победили Злого Владыку!");
+            }
+            else
+            {
+                Console.WriteLine("Вы погибли в бою. Злой Владыка торжествует...");
             }
         }
-        
+
         static void printInfoAboutParticipantsOfTheBattle(float healthPlayer, float armorPlayer, float damagePlayer,
             float healthEnemy, float armorEnemy, float damageEnemy)
         {
@@ -205,42 +236,68 @@ namespace ConsoleGame
             }
             return -1;
         }
-        static void selectAction(ref float healthPlayer, float damagePlayer, float armorPlayer, int countOfPotions)
-         {
-             Console.WriteLine($"Выберите действие:" +
-                 $"\n1. Атака ({damagePlayer} урона)" +
-                 $"\n2. Блок ({(armorPlayer + damagePlayer) / 10} урона будет заблокировано)" +
-                 $"\n3. Восстановить здоровье ({countOfPotions} зелий в наличии)");
-        
-             int action = int.Parse(Console.ReadLine());        
-             switch (action)
-             {
-                 case 1:
-                    // Атака
-                     break;
-                 case 2:
-                    Random random = new Random();
-                     float blockDamage = (armorPlayer + random.Next(1, 25)) / 10;
-                     Console.WriteLine($"Вы заблокировали {blockDamage} урона.");
-                     break;
-                 case 3:
-                     if (countOfPotions <= 0)
-                     {
-                         Console.WriteLine("У вас нет зелий для лечения.");
-                     }
-                     else
-                     { 
-                        // Логика лечения
-                        healthPlayer += 15;
-                        Console.WriteLine("Вы использовали зелье.");
+        static void selectAction(ref float healthPlayer, float damagePlayer, float armorPlayer, ref int countOfPotions, float damageEnemy, 
+            out float actualDamageToEnemy, out float actualDamageToPlayer)
+        {
+            actualDamageToEnemy = 0;
+            actualDamageToPlayer = 0;
+
+            Console.WriteLine($"Выберите действие:" +
+                              $"\n1. Атака ({damagePlayer:F0} урона)" +
+                              $"\n2. Блок (уменьшает получаемый урон)" +
+                              $"\n3. Восстановить здоровье ({countOfPotions} зелий в наличии)");
+
+            int action;
+            if (!int.TryParse(Console.ReadLine(), out action))
+            {
+                Console.WriteLine("Некорректный ввод. По умолчанию выбрана атака.");
+                action = 1;
+            }
+
+            switch (action)
+            {
+                case 1: // Атака
+                    actualDamageToEnemy = damagePlayer;
+                    actualDamageToPlayer = damageEnemy * (1 - armorPlayer / 100);
+                    Console.WriteLine("Вы атакуете врага!");
+                    break;
+
+                case 2: // Блок
+                        // Блок уменьшает получаемый урон на 30–70%
+                    Random rand = new Random();
+                    float blockFactor = rand.Next(30, 71) / 100f; // 0.3 – 0.7
+                    actualDamageToEnemy = 0; // при блоке не атакуем
+                    actualDamageToPlayer = damageEnemy * (1 - armorPlayer / 100) * (1 - blockFactor);
+                    Console.WriteLine($"Вы блокируете атаку! Получено {actualDamageToPlayer:F0} урона.");
+                    break;
+
+                case 3: // Зелье
+                    if (countOfPotions > 0)
+                    {
+                        healthPlayer += 25; // восстанавливаем 25 HP
                         countOfPotions--;
-                     }
-                     break;
-                 default:
-                     Console.WriteLine("Неверный выбор.");
-                     break;
-             }
-         }
+                        Console.WriteLine("Вы выпили зелье здоровья! +25 HP");
+                    }
+                    else
+                    {
+                        Console.WriteLine("У вас нет зелий! Пропуск хода.");
+                    }
+                    actualDamageToEnemy = 0;
+                    actualDamageToPlayer = 0; // при использовании зелья враг не бьёт? Или бьёт?
+                                              // ⚠️ Решение: обычно враг бьёт всегда, даже если ты лечишься.
+                                              // Поэтому, возможно, стоит всё равно применить урон от врага.
+                                              // Но для простоты пока — без урона при зелье.
+                    break;
+
+                default:
+                    Console.WriteLine("Неизвестное действие. Атака по умолчанию.");
+                    actualDamageToEnemy = damagePlayer;
+                    actualDamageToPlayer = damageEnemy * (1 - armorPlayer / 100);
+                    break;
+            }
+
+            Console.ReadKey();
+        }
 
     }
 }

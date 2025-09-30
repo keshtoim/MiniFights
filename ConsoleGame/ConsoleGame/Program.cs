@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -16,8 +16,11 @@ namespace ConsoleGame
             float armorPlayer = 0;
             float damagePlayer = 0;
 
+            // selectAction(ref healthPlayer, armorPlayer, damagePlayer, 0);
+
             classChoise(out healthPlayer, out armorPlayer, out damagePlayer);
-            game(ref healthPlayer, ref armorPlayer, ref damagePlayer); // Изменил на ref, так как game изменяет значения
+            game(ref healthPlayer, ref armorPlayer, ref damagePlayer); 
+
             Console.ReadKey();
         }
 
@@ -64,6 +67,7 @@ namespace ConsoleGame
             { 5, new PlayerClass("Простолюдин", 60, 10, 15) },
             { 6, new PlayerClass("Раб", 50, 0, 5) }
         };
+
         static void classChoise(out float healthPlayer, out float armorPlayer, out float damagePlayer)
         {
             while (true)
@@ -96,6 +100,7 @@ namespace ConsoleGame
                 }
             }
         }
+        
         static bool classChoiseRestart()
         {
             Console.WriteLine("Вы уверены в выборе класса?" +
@@ -123,72 +128,64 @@ namespace ConsoleGame
         static void game(ref float healthPlayer, ref float armorPlayer, ref float damagePlayer)
         {
             bool isPlayerAlive = true;
-            int procentForDamage = 100;
             Random rand = new Random();
 
             while (isPlayerAlive)
             {
-                // Новый враг
-                float healthEnemy = rand.Next(50, 101);
-                float armorEnemy = rand.Next(25, 51);
-                float damageEnemy = rand.Next(5, 31);
-
-                // Боевой цикл
-                while (isPlayerAlive && healthEnemy > 0)
+                for (int i = 0; i < 25; i++)
                 {
-                    // Атака
-                    healthEnemy -= damagePlayer * (1 - armorEnemy / procentForDamage);
-                    healthPlayer -= damageEnemy * (1 - armorPlayer / procentForDamage);
-
-                    // Проверка смерти игрока
-                    if (healthPlayer <= 0)
+                    bool isEnemyAlive = true;
+                    Random random = new Random();
+                    
+                    float healthEnemy = rand.Next(50, 101);
+                    float armorEnemy = rand.Next(25, 51);
+                    float damageEnemy = rand.Next(5, 31);
+                    
+                    while (isEnemyAlive)
                     {
-                        isPlayerAlive = false;
-                        break;
-                    }
+                        Console.Clear();
+                        Console.WriteLine($"Бой {i + 1}");
 
-                    // Вывод статистики
-                    Console.WriteLine(new String('-', 15));
-                    Console.WriteLine($"Данные игрока:" +
-                        $"\nЗдоровье: {healthPlayer:F0}" +
-                        $"\nБроня: {armorPlayer:F0}" +
-                        $"\nУрон: {damagePlayer:F0}");
+                        printInfoAboutParticipantsOfTheBattle(healthPlayer, armorPlayer, damagePlayer,
+                        healthEnemy, armorEnemy, damageEnemy);
 
-                    Console.WriteLine();
-                    Console.WriteLine($"Данные противника:" +
-                        $"\nЗдоровье: {healthEnemy:F0}" +
-                        $"\nБроня: {armorEnemy:F0}" +
-                        $"\nУрон: {damageEnemy:F0}");
+                        healthEnemy -= damagePlayer * (1 - armorEnemy / 100);
+                        healthPlayer -= damageEnemy * (1 - armorPlayer / 100);
+                        
+                        if (healthPlayer <= 0)
+                        {
+                            isPlayerAlive = false;
+                            break;
+                        }
+                        if (healthEnemy <= 0)
+                        {
+                            isEnemyAlive = false;
+                            continue;
+                        }
 
-                    int result = newGame(isPlayerAlive, healthEnemy);
-
-                    if (result == 0) // Продолжение поединка
-                    {
-                        Console.WriteLine("\nПротивники обмениваются ударами.");
-                        Console.WriteLine("\nРаны оказались несмертельны для обоих - бой продолжается" +
-                            "\nНажмите любую клавишу.");
                         Console.ReadKey();
-                    }
-                    else if (result == 1) // Победа
-                    {
-                        Console.WriteLine("\nВы победили врага! Пора двигаться дальше!");
-                        Console.ReadKey();
-                        break; // Выход из внутреннего цикла — новый враг
-                    }
-                    else if (result == -2) // Перерождение
-                    {
-                        Console.WriteLine("\nПерерождение...");
-                        healthPlayer = 100;
-                        isPlayerAlive = true;
-                        break; // Новый враг после перерождения
-                    }
-                    else // result == -1 — выход
-                    {
-                        Console.WriteLine("\nСпасибо за игру!");
-                        return; // Выход из всей игры
                     }
                 }
             }
+            if (isPlayerAlive == false)
+            {
+                Console.Clear();
+                Console.WriteLine("Вы погибли");
+            }
+        }
+        
+        static void printInfoAboutParticipantsOfTheBattle(float healthPlayer, float armorPlayer, float damagePlayer,
+            float healthEnemy, float armorEnemy, float damageEnemy)
+        {
+            Console.WriteLine($"Данные игрока:" +
+            $"\nЗдоровье: {healthPlayer:F0}" +
+            $"\nБроня: {armorPlayer:F0}" +
+            $"\nУрон: {damagePlayer:F0}" +
+            $"\n" +
+            $"\nДанные противника:" +
+            $"\nЗдоровье: {healthEnemy:F0}" +
+            $"\nnБроня: {armorEnemy:F0}" +
+            $"\nУрон: {damageEnemy:F0}");
         }
 
         static int newGame(bool isPlayerAlive, float healthEnemy)
@@ -208,24 +205,22 @@ namespace ConsoleGame
             }
             return -1;
         }
-
-        static void selectAction(int damagePlayer, int armorPlayer, int countOfPotions)
+        static void selectAction(ref float healthPlayer, float damagePlayer, float armorPlayer, int countOfPotions)
          {
              Console.WriteLine($"Выберите действие:" +
                  $"\n1. Атака ({damagePlayer} урона)" +
                  $"\n2. Блок ({(armorPlayer + damagePlayer) / 10} урона будет заблокировано)" +
                  $"\n3. Восстановить здоровье ({countOfPotions} зелий в наличии)");
         
-             int action;
-             if (!int.TryParse(Console.ReadLine(), out action))
-        
+             int action = int.Parse(Console.ReadLine());        
              switch (action)
              {
                  case 1:
-                      // Логика атаки
+                    // Атака
                      break;
                  case 2:
-                     int blockDamage = (armorPlayer + damagePlayer) / 10;
+                    Random random = new Random();
+                     float blockDamage = (armorPlayer + random.Next(1, 25)) / 10;
                      Console.WriteLine($"Вы заблокировали {blockDamage} урона.");
                      break;
                  case 3:
@@ -234,11 +229,11 @@ namespace ConsoleGame
                          Console.WriteLine("У вас нет зелий для лечения.");
                      }
                      else
-                     {
-                          // Логика лечения
-                         Console.WriteLine("Вы использовали зелье.");
-                         // healthPlayer += ...;
-                         countOfPotions--;
+                     { 
+                        // Логика лечения
+                        healthPlayer += 15;
+                        Console.WriteLine("Вы использовали зелье.");
+                        countOfPotions--;
                      }
                      break;
                  default:
